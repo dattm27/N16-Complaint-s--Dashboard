@@ -1,46 +1,59 @@
 # Consumer Complaints Dashboard
 
-Dashboard tự code lại theo tinh thần Chapter 20 - Complaints Dashboard: canvas trắng, tiêu đề lớn màu teal, KPI kiêm legend màu, stacked bar theo thời gian, hex map làm bộ lọc state, và hai biểu đồ đối chiếu Closed/Open theo reason/party.
+A web-based recreation of the Chapter 20 "Complaints Dashboard" style: white canvas, large teal title, KPI values that also act as the color legend, monthly stacked bars, a clickable state hex map, and split Closed/Open bar charts for complaint reason and party/company.
 
 ## Dataset
 
-- File local: `data/consumer_complaints.csv`
-- Nguồn: Plotly datasets, `26k-consumer-complaints.csv`
-- Số dòng dữ liệu: 28,156 complaints
-- Khoảng thời gian: 2015-01-01 đến 2015-03-19
+- Local file: `data/consumer_complaints.csv`
+- Source: Plotly datasets, `26k-consumer-complaints.csv`
+- Records: 28,156 complaints
+- Date range: 2015-01-01 to 2015-03-19
 
-Quy ước trạng thái:
+Status mapping:
 
 - `Company response = In progress` -> `Open`
-- Các giá trị phản hồi còn lại -> `Closed`
+- All other company response values -> `Closed`
 
-## Chạy dashboard
+## Dashboard Features
 
-Từ thư mục này:
+- Dual-handle `Date Received` slider filters the dashboard by date range.
+- `Source Type` filter uses the dataset's `Product` field.
+- `Show Open/Closed` filter switches between all, open-only, and closed-only complaints.
+- `Complaints by Month` groups records by actual calendar month.
+- State hex map shows open complaints and filters the full dashboard when a state is clicked.
+- Reason and Party charts compare `Closed` and `Open` volumes side by side.
+- `Reset View` restores the full dataset view.
+
+## Run Locally
+
+From this project folder:
 
 ```bash
-python3 -m http.server 4173
+python3 -m http.server 4173 --bind 127.0.0.1
 ```
 
-Mở:
+Open:
 
 ```text
 http://127.0.0.1:4173/index.html
 ```
 
-## Test tính năng
+## Test
 
 ```bash
 npm test
 ```
 
-Smoke test kiểm tra:
+The smoke test checks that:
 
-- Dashboard load đúng 28,156 records.
-- Open complaints được tính từ `In progress`.
-- Filter status hoạt động.
-- Click state trên hex map lọc toàn dashboard.
-- Source Type/Product filter thu hẹp dữ liệu.
-- Reset trả dashboard về trạng thái ban đầu.
-- Screenshot lưu tại `artifacts/dashboard-smoke.png`.
-- Mobile screenshot lưu tại `artifacts/dashboard-mobile.png`.
+- The dashboard loads all 28,156 records.
+- Open complaints are calculated from `In progress`.
+- The monthly chart renders one bar per calendar month.
+- The dual-handle date slider filters records.
+- The open/closed status filter works.
+- Clicking a state on the hex map filters the dashboard.
+- The Source Type/Product filter narrows the dataset.
+- Reset restores the full dataset.
+- The mobile layout does not overflow horizontally.
+- Desktop screenshot is saved to `artifacts/dashboard-smoke.png`.
+- Mobile screenshot is saved to `artifacts/dashboard-mobile.png`.

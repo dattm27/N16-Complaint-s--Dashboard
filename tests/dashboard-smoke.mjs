@@ -86,6 +86,17 @@ try {
   assert.equal(initial.summary.total, 28156, "initial total complaints should match CSV row count");
   assert.equal(initial.summary.open, 2690, "initial open complaints should use In progress status");
 
+  await page.locator("#start-date").evaluate((input) => {
+    input.value = "20";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await page.waitForFunction(() => window.__dashboard?.filters.start !== "2015-01-01");
+  const dateFiltered = await page.evaluate(() => window.__dashboard);
+  assert.ok(dateFiltered.rowCount > 0 && dateFiltered.rowCount < initial.rowCount, "date range slider should filter records");
+
+  await page.locator("#reset-btn").click();
+  await page.waitForFunction(() => window.__dashboard?.filters.start === "2015-01-01" && window.__dashboard?.rowCount === 28156);
+
   await page.locator("#status-filter").selectOption("Open");
   await page.waitForFunction(() => window.__dashboard?.filters.status === "Open");
   const openOnly = await page.evaluate(() => window.__dashboard);

@@ -138,50 +138,103 @@ h2 {
 
 .date-line {
   display: grid;
-  grid-template-columns: 88px minmax(120px, 1fr) 102px;
+  grid-template-columns: 86px minmax(120px, 1fr) 104px;
   gap: 8px;
   align-items: center;
 }
 
-input[type="date"] {
+.date-line output {
   height: 22px;
   min-width: 0;
-  border: 0;
-  background: transparent;
   color: var(--teal-dark);
-  padding: 0;
+  font-size: 0.88rem;
   font-weight: 800;
+  line-height: 22px;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-  display: none;
+#end-date-label {
+  text-align: right;
 }
 
-.slider-track {
+.range-control {
   position: relative;
   display: block;
-  height: 20px;
+  height: 22px;
 }
 
-.slider-track::before {
+.range-control::before,
+.range-fill {
   position: absolute;
   top: 9px;
-  right: 0;
-  left: 0;
   height: 3px;
-  background: #d7d7d7;
   content: "";
 }
 
-.slider-track span {
+.range-control::before {
+  right: 0;
+  left: 0;
+  background: #d7d7d7;
+}
+
+.range-fill {
+  left: 0;
+  width: 100%;
+  background: var(--teal);
+}
+
+input[type="range"] {
   position: absolute;
-  top: 8px;
-  left: 44%;
-  width: 10px;
-  height: 10px;
-  border: 2px solid #a8a8a8;
+  inset: 0;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  pointer-events: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: transparent;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 11px;
+  height: 11px;
+  border: 2px solid #9f9f9f;
   border-radius: 50%;
   background: #fff;
+  appearance: none;
+  cursor: grab;
+  pointer-events: auto;
+  transform: translateY(-4px);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #9f9f9f;
+  border-radius: 50%;
+  background: #fff;
+  cursor: grab;
+  pointer-events: auto;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(144, 205, 208, 0.35);
+}
+
+input[type="range"]:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(144, 205, 208, 0.35);
 }
 
 .select-row {

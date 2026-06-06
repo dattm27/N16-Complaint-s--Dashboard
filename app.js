@@ -26,6 +26,9 @@ const state = {
 const els = {
   startDate: document.querySelector("#start-date"),
   endDate: document.querySelector("#end-date"),
+  startDateLabel: document.querySelector("#start-date-label"),
+  endDateLabel: document.querySelector("#end-date-label"),
+  rangeFill: document.querySelector("#range-fill"),
   statusFilter: document.querySelector("#status-filter"),
   productFilter: document.querySelector("#product-filter"),
   searchBox: document.querySelector("#search-box"),
@@ -183,6 +186,21 @@ function dateKey(ms) {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
+function dayIndex(dateValue) {
+  return Math.round((parseDate(dateValue) - parseDate(state.minDate)) / 86400000);
+}
+
+function dateFromDayIndex(index) {
+  return dateKey(parseDate(state.minDate) + Number(index) * 86400000);
+}
+
+function formatDateNumeric(dateValue) {
+  const date = new Date(parseDate(dateValue));
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${date.getUTCFullYear()}`;
+}
+
 function formatShortDate(keyOrMs) {
   const ms = typeof keyOrMs === "number" ? keyOrMs : parseDate(keyOrMs);
   return new Intl.DateTimeFormat("en-US", {
@@ -328,6 +346,38 @@ function groupedCounts(records, key) {
   return Array.from(map.values());
 }
 
+function syncDateControls() {
+  const max = Math.max(Number(els.endDate.max), 1);
+  const start = dayIndex(state.filters.start);
+  const end = dayIndex(state.filters.end);
+  const startPct = (start / max) * 100;
+  const endPct = (end / max) * 100;
+
+  els.startDate.value = String(start);
+  els.endDate.value = String(end);
+  els.startDateLabel.textContent = formatDateNumeric(state.filters.start);
+  els.endDateLabel.textContent = formatDateNumeric(state.filters.end);
+  els.rangeFill.style.left = `${startPct}%`;
+  els.rangeFill.style.width = `${Math.max(0, endPct - startPct)}%`;
+}
+
+function handleDateRangeInput(changed) {
+  let start = Number(els.startDate.value);
+  let end = Number(els.endDate.value);
+
+  if (changed === "start" && start > end) {
+    start = end;
+  }
+  if (changed === "end" && end < start) {
+    end = start;
+  }
+
+  state.filters.start = dateFromDayIndex(start);
+  state.filters.end = dateFromDayIndex(end);
+  syncDateControls();
+  render();
+}
+
 function initControls() {
   const dates = state.records.map((record) => record.date).sort();
   state.minDate = dates[0];
@@ -335,12 +385,14 @@ function initControls() {
   state.filters.start = state.minDate;
   state.filters.end = state.maxDate;
 
-  els.startDate.min = state.minDate;
-  els.startDate.max = state.maxDate;
-  els.startDate.value = state.filters.start;
-  els.endDate.min = state.minDate;
-  els.endDate.max = state.maxDate;
-  els.endDate.value = state.filters.end;
+  const maxDay = dayIndex(state.maxDate);
+  els.startDate.min = "0";
+  els.startDate.max = String(maxDay);
+  els.startDate.step = "1";
+  els.endDate.min = "0";
+  els.endDate.max = String(maxDay);
+  els.endDate.step = "1";
+  syncDateControls();
 
   const products = groupedCounts(state.records, "product")
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name))
@@ -353,23 +405,8 @@ function initControls() {
     els.productFilter.appendChild(option);
   });
 
-  els.startDate.addEventListener("change", () => {
-    state.filters.start = els.startDate.value;
-    if (parseDate(state.filters.start) > parseDate(state.filters.end)) {
-      state.filters.end = state.filters.start;
-      els.endDate.value = state.filters.end;
-    }
-    render();
-  });
-
-  els.endDate.addEventListener("change", () => {
-    state.filters.end = els.endDate.value;
-    if (parseDate(state.filters.end) < parseDate(state.filters.start)) {
-      state.filters.start = state.filters.end;
-      els.startDate.value = state.filters.start;
-    }
-    render();
-  });
+  els.startDate.addEventListener("input", () => handleDateRangeInput("start"));
+  els.endDate.addEventListener("input", () => handleDateRangeInput("end"));
 
   els.statusFilter.addEventListener("change", () => {
     state.filters.status = els.statusFilter.value;
@@ -401,8 +438,7 @@ function resetFilters() {
     company: "",
     search: ""
   };
-  els.startDate.value = state.filters.start;
-  els.endDate.value = state.filters.end;
+  syncDateControls();
   els.statusFilter.value = state.filters.status;
   els.productFilter.value = state.filters.product;
   els.searchBox.value = "";

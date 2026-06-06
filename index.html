@@ -35,9 +35,13 @@
           <label class="date-control">
             <span>Date Received</span>
             <span class="date-line">
-              <input id="start-date" type="date" data-testid="start-date">
-              <span class="slider-track" aria-hidden="true"><span></span></span>
-              <input id="end-date" type="date" data-testid="end-date">
+              <output id="start-date-label" for="start-date">01/01/2015</output>
+              <span class="range-control">
+                <span id="range-fill" class="range-fill" aria-hidden="true"></span>
+                <input id="start-date" type="range" min="0" max="0" value="0" step="1" aria-label="Start date" data-testid="start-date">
+                <input id="end-date" type="range" min="0" max="0" value="0" step="1" aria-label="End date" data-testid="end-date">
+              </span>
+              <output id="end-date-label" for="end-date">19/03/2015</output>
             </span>
           </label>
           <div class="select-row">

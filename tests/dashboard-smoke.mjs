@@ -85,6 +85,7 @@ try {
   const initial = await page.evaluate(() => window.__dashboard);
   assert.equal(initial.summary.total, 28156, "initial total complaints should match CSV row count");
   assert.equal(initial.summary.open, 2690, "initial open complaints should use In progress status");
+  assert.equal(await page.locator("[data-testid='time-bar']").count(), 3, "monthly chart should render one bar per month");
 
   await page.locator("#start-date").evaluate((input) => {
     input.value = "20";

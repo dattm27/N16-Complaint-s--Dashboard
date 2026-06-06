@@ -563,14 +563,13 @@ function renderTimeChart(records) {
     return;
   }
 
-  const grouped = groupedCounts(records, (record) => record.weekMs)
+  const grouped = groupedCounts(records, (record) => record.monthMs)
     .sort((a, b) => Number(a.name) - Number(b.name))
     .map((item) => ({
       ...item,
-      weekMs: Number(item.name),
-      displayMs: Math.max(Number(item.name), parseDate(state.minDate)),
-      label: new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(Math.max(Number(item.name), parseDate(state.minDate)))),
-      year: new Date(Math.max(Number(item.name), parseDate(state.minDate))).getUTCFullYear()
+      monthMs: Number(item.name),
+      label: new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(Number(item.name))),
+      year: new Date(Number(item.name)).getUTCFullYear()
     }));
 
   const width = 560;
@@ -581,7 +580,7 @@ function renderTimeChart(records) {
   const maxTotal = Math.max(...grouped.map((item) => item.total), 1);
   const tickCount = 4;
   const band = innerW / grouped.length;
-  const barW = Math.max(10, Math.min(30, band * 0.72));
+  const barW = Math.max(24, Math.min(46, band * 0.52));
 
   const y = (value) => margin.top + innerH - (value / maxTotal) * innerH;
   const h = (value) => (value / maxTotal) * innerH;
@@ -600,14 +599,12 @@ function renderTimeChart(records) {
     const closedHeight = h(item.closed);
     const openY = margin.top + innerH - openHeight;
     const closedY = openY - closedHeight;
-    const showLabel = grouped.length <= 15 || index % Math.ceil(grouped.length / 12) === 0;
-
     return `
       <g class="time-bar" data-testid="time-bar">
         <title>${escapeHtml(item.label)}: ${item.open} open, ${item.closed} closed</title>
         <rect class="open-fill" x="${x}" y="${openY}" width="${barW}" height="${openHeight}"></rect>
         <rect class="closed-fill" x="${x}" y="${closedY}" width="${barW}" height="${closedHeight}"></rect>
-        ${showLabel ? `<text class="tick-label" x="${x + barW / 2}" y="${height - 18}" text-anchor="middle">${escapeHtml(item.label)}</text>` : ""}
+        <text class="tick-label" x="${x + barW / 2}" y="${height - 18}" text-anchor="middle">${escapeHtml(item.label)}</text>
       </g>
     `;
   }).join("");

@@ -7,139 +7,91 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <main class="shell">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Compliance monitoring</p>
-          <h1>Consumer Complaints Dashboard</h1>
-          <p class="subtitle">Open complaints are the primary signal for action; closed complaints provide context for workload and recurring issues.</p>
-        </div>
-        <div class="source-block">
-          <span class="source-label">Dataset</span>
-          <strong>Plotly 26k Consumer Complaints</strong>
-          <span>2015-01-01 to 2015-03-19</span>
-        </div>
-      </header>
+    <main class="shell book-layout">
+      <header class="book-header">
+        <section class="hero-and-kpis" aria-label="Complaint summary">
+          <h1>Complaints Dashboard</h1>
+          <div class="book-kpis">
+            <span class="total-label">Total Complaints:</span>
+            <div class="book-kpi closed-kpi">
+              <span>Closed</span>
+              <strong id="closed-complaints" data-testid="closed-complaints">0</strong>
+            </div>
+            <div class="book-kpi open-kpi">
+              <span>Open</span>
+              <strong id="open-complaints" data-testid="open-complaints">0</strong>
+            </div>
+            <div class="book-kpi">
+              <span>Total</span>
+              <strong id="total-complaints" data-testid="total-complaints">0</strong>
+            </div>
+          </div>
+          <p id="date-window" class="date-window">Selected period</p>
+          <p id="oldest-open" class="visually-hidden">Oldest open: n/a</p>
+          <p id="open-rate" class="visually-hidden" data-testid="open-rate">0%</p>
+        </section>
 
-      <section class="toolbar" aria-label="Dashboard filters">
-        <label>
-          Start
-          <input id="start-date" type="date" data-testid="start-date">
-        </label>
-        <label>
-          End
-          <input id="end-date" type="date" data-testid="end-date">
-        </label>
-        <label>
-          Status
-          <select id="status-filter" data-testid="status-filter">
-            <option value="all">All complaints</option>
-            <option value="Open">Open only</option>
-            <option value="Closed">Closed only</option>
-          </select>
-        </label>
-        <label>
-          Product
-          <select id="product-filter" data-testid="product-filter">
-            <option value="all">All products</option>
-          </select>
-        </label>
-        <label class="search-label">
-          Search
-          <input id="search-box" type="search" placeholder="Company, issue, state..." data-testid="search-box">
-        </label>
-        <button id="export-btn" class="secondary" type="button" data-testid="export-btn">Export CSV</button>
-        <button id="reset-btn" type="button" data-testid="reset-btn">Reset</button>
-      </section>
+        <section class="book-controls" aria-label="Dashboard filters">
+          <label class="date-control">
+            <span>Date Received</span>
+            <span class="date-line">
+              <input id="start-date" type="date" data-testid="start-date">
+              <span class="slider-track" aria-hidden="true"><span></span></span>
+              <input id="end-date" type="date" data-testid="end-date">
+            </span>
+          </label>
+          <div class="select-row">
+            <label>
+              <span>Source Type</span>
+              <select id="product-filter" data-testid="product-filter">
+                <option value="all">All</option>
+              </select>
+            </label>
+            <label>
+              <span>Show Open/Closed</span>
+              <select id="status-filter" data-testid="status-filter">
+                <option value="all">All</option>
+                <option value="Open">Open</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </label>
+          </div>
+          <button id="reset-btn" type="button" data-testid="reset-btn">Reset View</button>
+          <input id="search-box" class="visually-hidden" type="search" tabindex="-1" aria-hidden="true">
+          <button id="export-btn" class="visually-hidden" type="button" tabindex="-1" aria-hidden="true">Export CSV</button>
+        </section>
+      </header>
 
       <section id="active-filters" class="active-filters" aria-live="polite"></section>
 
-      <section class="kpi-grid" aria-label="Complaint summary">
-        <article class="kpi-card">
-          <span>Total complaints</span>
-          <strong id="total-complaints" data-testid="total-complaints">0</strong>
-          <small id="date-window">Selected period</small>
-        </article>
-        <article class="kpi-card open-card">
-          <span>Open</span>
-          <strong id="open-complaints" data-testid="open-complaints">0</strong>
-          <small>In progress</small>
-        </article>
-        <article class="kpi-card closed-card">
-          <span>Closed</span>
-          <strong id="closed-complaints" data-testid="closed-complaints">0</strong>
-          <small>Resolved responses</small>
-        </article>
-        <article class="kpi-card">
-          <span>Open rate</span>
-          <strong id="open-rate" data-testid="open-rate">0%</strong>
-          <small id="oldest-open">Oldest open: n/a</small>
-        </article>
-      </section>
-
       <section class="dashboard-grid">
-        <article class="panel wide">
+        <article class="panel time-panel">
           <div class="panel-header">
-            <div>
-              <h2>Complaints Over Time</h2>
-              <p>Open complaints sit on the baseline for precise comparison.</p>
-            </div>
+            <h2>Complaints by Month</h2>
           </div>
-          <div id="time-chart" class="chart-area tall" data-testid="time-chart"></div>
+          <div id="time-chart" class="chart-area" data-testid="time-chart"></div>
         </article>
 
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Open Complaints by State</h2>
-              <p id="map-meta">Each state has equal visual weight.</p>
-            </div>
+        <article class="panel map-panel">
+          <div class="panel-header inline-note">
+            <h2>Open Complaints by State <em>(click to filter)</em></h2>
+            <p id="map-meta" class="visually-hidden">Each state has equal visual weight.</p>
           </div>
           <div id="state-map" class="map-area" data-testid="state-map"></div>
         </article>
 
-        <article class="panel">
+        <article class="panel reason-panel">
           <div class="panel-header">
-            <div>
-              <h2>Complaints by Issue</h2>
-              <p>Top recurring reasons in the selected slice.</p>
-            </div>
+            <h2>Complaints by Reason</h2>
           </div>
-          <div id="issue-chart" class="chart-area" data-testid="issue-chart"></div>
+          <div id="issue-chart" class="chart-area diverging-area" data-testid="issue-chart"></div>
         </article>
 
-        <article class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Complaints by Company</h2>
-              <p>Organizations creating the largest workload.</p>
-            </div>
+        <article class="panel party-panel">
+          <div class="panel-header inline-note">
+            <h2>Complaints by Party <em>(click to filter)</em></h2>
           </div>
-          <div id="company-chart" class="chart-area" data-testid="company-chart"></div>
-        </article>
-
-        <article class="panel wide">
-          <div class="panel-header">
-            <div>
-              <h2>Oldest Open Complaints</h2>
-              <p>Records that need attention first after filters are applied.</p>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>State</th>
-                  <th>Product</th>
-                  <th>Issue</th>
-                  <th>Company</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="detail-table" data-testid="detail-table"></tbody>
-            </table>
-          </div>
+          <div id="company-chart" class="chart-area diverging-area" data-testid="company-chart"></div>
         </article>
       </section>
     </main>

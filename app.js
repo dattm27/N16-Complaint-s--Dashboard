@@ -1,12 +1,11 @@
 "use strict";
 
 const DATA_URL = "data/consumer_complaints.csv";
-const OPEN_COLOR = "#e76f51";
-const CLOSED_COLOR = "#2f75b5";
+const OPEN_COLOR = "#ed806e";
+const CLOSED_COLOR = "#90cdd0";
 const EMPTY_COLOR = "#ffffff";
-const SOFT_OPEN = "#fff3ef";
-const LINE_COLOR = "#d9e0e8";
-const TEXT_MUTED = "#667085";
+const SOFT_OPEN = "#f3e3e0";
+const LINE_COLOR = "#c8c8c8";
 
 const state = {
   records: [],
@@ -199,6 +198,11 @@ function weekStart(ms) {
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - offset);
 }
 
+function monthStart(ms) {
+  const date = new Date(ms);
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+}
+
 function normalizeRow(row) {
   const date = row["Date received"];
   const response = clean(row["Company response"]) || "Unknown";
@@ -207,6 +211,7 @@ function normalizeRow(row) {
     date,
     dateMs: parseDate(date),
     weekMs: weekStart(parseDate(date)),
+    monthMs: monthStart(parseDate(date)),
     product: clean(row.Product) || "Unknown product",
     issue: clean(row.Issue) || "Unknown issue",
     state: clean(row.State) || "Unknown",
@@ -463,7 +468,6 @@ function render() {
       render();
     }
   });
-  renderTable(records);
   window.__dashboard = {
     filters: { ...state.filters },
     summary: countByStatus(records),
@@ -528,18 +532,20 @@ function renderTimeChart(records) {
     .map((item) => ({
       ...item,
       weekMs: Number(item.name),
-      label: formatShortDate(Number(item.name))
+      displayMs: Math.max(Number(item.name), parseDate(state.minDate)),
+      label: new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(Math.max(Number(item.name), parseDate(state.minDate)))),
+      year: new Date(Math.max(Number(item.name), parseDate(state.minDate))).getUTCFullYear()
     }));
 
-  const width = 980;
-  const height = 360;
-  const margin = { top: 20, right: 24, bottom: 48, left: 52 };
+  const width = 560;
+  const height = 270;
+  const margin = { top: 28, right: 16, bottom: 34, left: 46 };
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
   const maxTotal = Math.max(...grouped.map((item) => item.total), 1);
   const tickCount = 4;
   const band = innerW / grouped.length;
-  const barW = Math.max(10, Math.min(44, band * 0.62));
+  const barW = Math.max(10, Math.min(30, band * 0.72));
 
   const y = (value) => margin.top + innerH - (value / maxTotal) * innerH;
   const h = (value) => (value / maxTotal) * innerH;
@@ -548,7 +554,6 @@ function renderTimeChart(records) {
     const value = Math.round((maxTotal / tickCount) * index);
     const yPos = y(value);
     return `
-      <line class="grid-line" x1="${margin.left}" x2="${width - margin.right}" y1="${yPos}" y2="${yPos}"></line>
       <text class="axis" x="${margin.left - 10}" y="${yPos + 4}" text-anchor="end">${numberFmt.format(value)}</text>
     `;
   }).join("");
@@ -559,7 +564,7 @@ function renderTimeChart(records) {
     const closedHeight = h(item.closed);
     const openY = margin.top + innerH - openHeight;
     const closedY = openY - closedHeight;
-    const showLabel = grouped.length <= 12 || index % Math.ceil(grouped.length / 10) === 0;
+    const showLabel = grouped.length <= 15 || index % Math.ceil(grouped.length / 12) === 0;
 
     return `
       <g class="time-bar" data-testid="time-bar">
@@ -571,17 +576,20 @@ function renderTimeChart(records) {
     `;
   }).join("");
 
+  const yearLabels = Array.from(new Set(grouped.map((item) => item.year))).map((year) => {
+    const first = grouped.findIndex((item) => item.year === year);
+    const last = grouped.length - 1 - [...grouped].reverse().findIndex((item) => item.year === year);
+    const x1 = margin.left + first * band;
+    const x2 = margin.left + (last + 1) * band;
+    return `<text class="axis" x="${(x1 + x2) / 2}" y="16" text-anchor="middle">${year}</text>`;
+  }).join("");
+
   els.timeChart.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Stacked bar chart showing open and closed complaints over time">
+      ${yearLabels}
       ${grid}
       <line x1="${margin.left}" x2="${width - margin.right}" y1="${margin.top + innerH}" y2="${margin.top + innerH}" stroke="${LINE_COLOR}"></line>
       ${bars}
-      <g transform="translate(${width - 260}, 14)">
-        <rect class="open-fill" width="12" height="12" rx="2"></rect>
-        <text class="axis" x="18" y="11">Open</text>
-        <rect class="closed-fill" x="78" width="12" height="12" rx="2"></rect>
-        <text class="axis" x="96" y="11">Closed</text>
-      </g>
     </svg>
   `;
 }
@@ -602,34 +610,48 @@ function renderHorizontalChart(config) {
     return;
   }
 
-  const width = 760;
-  const rowH = 38;
-  const height = 34 + items.length * rowH;
-  const margin = { top: 12, right: 58, bottom: 16, left: 250 };
-  const innerW = width - margin.left - margin.right;
-  const maxTotal = Math.max(...items.map((item) => item.total), 1);
+  const width = 610;
+  const rowH = 16;
+  const height = 54 + items.length * rowH + 24;
+  const labelW = key === "issue" ? 236 : 190;
+  const split = key === "issue" ? 348 : 318;
+  const leftMaxW = split - labelW - 8;
+  const rightMaxW = width - split - 42;
+  const maxClosed = Math.max(...items.map((item) => item.closed), 1);
+  const maxOpen = Math.max(...items.map((item) => item.open), 1);
+  const chartBottom = 42 + items.length * rowH + 8;
 
   const rows = items.map((item, index) => {
-    const y = margin.top + index * rowH;
-    const openW = (item.open / maxTotal) * innerW;
-    const closedW = (item.closed / maxTotal) * innerW;
+    const y = 44 + index * rowH;
+    const closedW = (item.closed / maxClosed) * leftMaxW;
+    const openW = (item.open / maxOpen) * rightMaxW;
     const active = item.name === selected ? " is-active" : "";
-    const label = truncateLabel(item.name, labelMax);
+    const label = truncateLabel(item.name, key === "issue" ? 42 : labelMax);
     return `
       <g class="bar-hit${active}" role="button" tabindex="0" data-value="${escapeHtml(item.name)}" data-testid="${testPrefix}-bar-${slug(item.name)}">
         <title>${escapeHtml(item.name)}: ${item.open} open, ${item.closed} closed</title>
-        <text class="bar-label" x="${margin.left - 12}" y="${y + 21}" text-anchor="end">${escapeHtml(label)}</text>
-        <rect x="${margin.left}" y="${y + 5}" width="${innerW}" height="20" fill="#f0f4f8" rx="4"></rect>
-        <rect class="open-fill" x="${margin.left}" y="${y + 5}" width="${openW}" height="20" rx="4"></rect>
-        <rect class="closed-fill" x="${margin.left + openW}" y="${y + 5}" width="${closedW}" height="20" rx="4"></rect>
-        <text class="axis" x="${width - margin.right + 10}" y="${y + 21}">${numberFmt.format(item.total)}</text>
+        <text class="bar-label" x="${labelW - 8}" y="${y + 9}" text-anchor="end">${escapeHtml(label)}</text>
+        <rect class="closed-fill" x="${labelW + 4}" y="${y + 2}" width="${closedW}" height="10"></rect>
+        <rect class="open-fill" x="${split + 4}" y="${y + 2}" width="${openW}" height="10"></rect>
+        <text class="bar-value" x="${width - 4}" y="${y + 10}" text-anchor="end">${numberFmt.format(item.total)}</text>
       </g>
     `;
   }).join("");
 
   container.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Horizontal stacked bar chart">
+      <text class="chart-heading" x="${split - leftMaxW}" y="18">Closed</text>
+      <text class="chart-heading" x="${split + 4}" y="18">Open</text>
+      <line class="baseline" x1="${labelW}" x2="${labelW}" y1="26" y2="${chartBottom}"></line>
+      <line class="baseline" x1="${split}" x2="${split}" y1="26" y2="${chartBottom}"></line>
+      <line class="baseline" x1="${width - 2}" x2="${width - 2}" y1="26" y2="${chartBottom}"></line>
       ${rows}
+      <text class="axis" x="${labelW}" y="${height - 4}" text-anchor="middle">0</text>
+      <text class="axis" x="${split - leftMaxW / 2}" y="${height - 4}" text-anchor="middle">${numberFmt.format(Math.round(maxClosed / 2))}</text>
+      <text class="axis" x="${split}" y="${height - 4}" text-anchor="middle">${numberFmt.format(maxClosed)}</text>
+      <text class="axis" x="${split + 4}" y="${height - 4}" text-anchor="middle">0</text>
+      <text class="axis" x="${split + rightMaxW / 2}" y="${height - 4}" text-anchor="middle">${numberFmt.format(Math.round(maxOpen / 2))}</text>
+      <text class="axis" x="${width - 2}" y="${height - 4}" text-anchor="end">${numberFmt.format(maxOpen)}</text>
     </svg>
   `;
 
@@ -662,17 +684,19 @@ function renderStateMap() {
     .filter(([code]) => !mappedCodes.has(code))
     .reduce((sum, [, item]) => sum + item.open, 0);
 
-  els.mapMeta.textContent = otherOpen > 0
-    ? `Each state has equal visual weight. Other regions open: ${numberFmt.format(otherOpen)}.`
-    : "Each state has equal visual weight.";
+  if (els.mapMeta) {
+    els.mapMeta.textContent = otherOpen > 0
+      ? `Each state has equal visual weight. Other regions open: ${numberFmt.format(otherOpen)}.`
+      : "Each state has equal visual weight.";
+  }
 
-  const r = 22;
-  const dx = 45;
-  const dy = 39;
-  const width = 560;
-  const height = 390;
-  const startX = 38;
-  const startY = 32;
+  const r = 14;
+  const dx = 29;
+  const dy = 25;
+  const width = 455;
+  const height = 245;
+  const startX = 34;
+  const startY = 22;
 
   const hexes = HEX_ROWS.map((row, rowIndex) => {
     return row.codes.map((code, colIndex) => {
@@ -695,13 +719,6 @@ function renderStateMap() {
   els.stateMap.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Hex map of open complaints by state">
       ${hexes}
-      <g transform="translate(18, 362)">
-        <rect x="0" y="-10" width="58" height="10" fill="${SOFT_OPEN}"></rect>
-        <rect x="58" y="-10" width="58" height="10" fill="#f3b59d"></rect>
-        <rect x="116" y="-10" width="58" height="10" fill="${OPEN_COLOR}"></rect>
-        <text class="axis" x="0" y="16">Fewer open</text>
-        <text class="axis" x="174" y="16" text-anchor="end">More open</text>
-      </g>
     </svg>
   `;
 

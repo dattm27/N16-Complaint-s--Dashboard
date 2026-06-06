@@ -17,8 +17,7 @@ Mục tiêu chính là hỗ trợ giám sát và ưu tiên xử lý khiếu nạ
 - Bao nhiêu complaint còn open và cần follow-up?
 - Open complaint tập trung ở state nào?
 - Issue nào xuất hiện nhiều nhất?
-- Company nào tạo ra nhiều complaint nhất trong lát cắt dữ liệu đang xem?
-- Các complaint open lâu nhất là những record nào?
+- Party/Company nào tạo ra nhiều complaint nhất trong lát cắt dữ liệu đang xem?
 
 Dashboard vì vậy được thiết kế theo hướng operational/compliance: ưu tiên tốc độ đọc, khả năng lọc nhanh và nhận diện điểm cần hành động.
 
@@ -32,16 +31,15 @@ Luồng đọc đề xuất:
 2. Xem stacked bar theo thời gian để phát hiện tuần nào có nhiều complaint/open complaint.
 3. Xem hex map để biết state nào đang có nhiều open complaint.
 4. Xem issue/company chart để biết nguyên nhân và đối tượng nổi bật.
-5. Dùng bảng oldest open complaints để chuyển từ phân tích tổng hợp sang danh sách record cần xử lý.
+5. Click state/reason/party để lọc toàn bộ dashboard và thu hẹp câu chuyện phân tích.
 
 ## 4. Các lựa chọn hiển thị phản ánh story ra sao?
 
 - KPI ở đầu dashboard vừa là số tổng quan vừa đóng vai trò color legend: màu cam là Open, màu xanh là Closed. Cách này giống tinh thần Chapter 20 vì người xem không cần tìm legend riêng.
 - Stacked bar chart dùng Open ở segment dưới cùng, bám baseline. Điều này giúp so sánh open complaint giữa các tuần chính xác hơn, vì open complaint là phần quan trọng nhất.
 - Hex map được dùng thay cho choropleth map. Mỗi state có diện tích bằng nhau, giúp state nhỏ như RI, DE, DC vẫn dễ nhìn và dễ click. Map đồng thời là bộ lọc tương tác.
-- Horizontal stacked bar chart được dùng cho Issue và Company vì bar chart phù hợp cho so sánh định lượng giữa các nhóm danh mục.
-- Bảng chi tiết tập trung vào các complaint open lâu nhất, giúp dashboard không chỉ dừng ở insight mà còn hỗ trợ hành động tiếp theo.
-- Bộ lọc date, status, product, search và click filter trên chart/map cho phép người dùng đi từ tổng quan tới lát cắt cụ thể.
+- Biểu đồ Reason và Party dùng hai vùng Closed/Open đặt cạnh nhau, gần bố cục trong sách, để người xem so sánh hai trạng thái theo cùng danh mục.
+- Bộ lọc date, status, source type/product và click filter trên chart/map cho phép người dùng đi từ tổng quan tới lát cắt cụ thể.
 
 ## 5. Ưu điểm của Dashboard
 
@@ -49,9 +47,9 @@ Luồng đọc đề xuất:
 - Màu sắc nhất quán: Open luôn dùng cam, Closed luôn dùng xanh.
 - KPI kiêm legend giúp giảm clutter.
 - Hex map có giá trị phân tích và giá trị tương tác, không chỉ là trang trí.
-- Open complaint được ưu tiên trong thiết kế stacked bar và bảng chi tiết.
+- Open complaint được ưu tiên trong thiết kế stacked bar và hex map.
 - Dashboard chạy local, không phụ thuộc CDN hay framework bên ngoài.
-- Có smoke test tự động cho các chức năng chính: load dữ liệu, filter, map click, search, reset, export.
+- Có smoke test tự động cho các chức năng chính: load dữ liệu, filter, map click, reset và responsive layout.
 
 ## 6. Nhược điểm của Dashboard
 
@@ -59,7 +57,7 @@ Luồng đọc đề xuất:
 - Dataset không có cột party/source giống dashboard trong sách, nên dashboard thay bằng Company. Điều này phù hợp dữ liệu nhưng không tái hiện hoàn toàn phần "complaints by party".
 - Open/Closed là trạng thái suy luận từ `Company response`, không phải field nghiệp vụ chuẩn.
 - Hex map hy sinh vị trí địa lý chính xác để đổi lấy tính dễ nhìn/dễ click.
-- Các issue/company tên dài nên phải rút gọn label trên chart; người dùng cần hover hoặc xem bảng để thấy đầy đủ.
+- Các issue/company tên dài nên phải rút gọn label trên chart; người dùng cần hover để thấy đầy đủ.
 - Chưa có drill-down tới từng complaint detail page hoặc workflow cập nhật trạng thái xử lý.
 
 ## 7. Có thể improve Dashboard ở khía cạnh nào?
@@ -68,7 +66,7 @@ Luồng đọc đề xuất:
 - Bổ sung SLA metric: số ngày open, số complaint quá hạn, median response time, tỷ lệ timely response.
 - Thêm filter theo channel/source nếu dataset có cột này để giống Chapter 20 hơn.
 - Thêm small multiples hoặc trend theo product để so sánh workload giữa các dòng sản phẩm.
-- Thêm tooltip giàu thông tin và detail drawer khi click một complaint trong bảng.
+- Thêm tooltip giàu thông tin và detail drawer khi click vào một nhóm/state để xem record cụ thể.
 - Cải thiện accessibility: mô tả chart bằng text summary tự động và hỗ trợ keyboard tốt hơn cho mọi phần tử tương tác.
 - Nếu triển khai thật, nên kết nối database/API thay vì đọc CSV tĩnh, đồng thời thêm phân quyền và audit log cho nhóm compliance.
 

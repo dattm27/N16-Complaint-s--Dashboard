@@ -96,19 +96,16 @@ try {
   const california = await page.evaluate(() => window.__dashboard);
   assert.ok(california.rowCount > 0 && california.rowCount < openOnly.rowCount, "state hex should filter the dashboard");
 
-  await page.locator("#search-box").fill("Equifax");
-  await page.waitForFunction(() => window.__dashboard?.filters.search === "Equifax");
-  const searched = await page.evaluate(() => window.__dashboard);
-  assert.ok(searched.rowCount <= california.rowCount, "search should narrow the selected slice");
-
   await page.locator("#reset-btn").click();
   await page.waitForFunction(() => window.__dashboard?.filters.status === "all" && window.__dashboard?.rowCount === 28156);
 
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    page.locator("#export-btn").click()
-  ]);
-  assert.equal(download.suggestedFilename(), "filtered-consumer-complaints.csv", "export should download a CSV");
+  await page.locator("#product-filter").selectOption("Mortgage");
+  await page.waitForFunction(() => window.__dashboard?.filters.product === "Mortgage");
+  const mortgage = await page.evaluate(() => window.__dashboard);
+  assert.ok(mortgage.rowCount > 0 && mortgage.rowCount < initial.rowCount, "source type/product filter should narrow the dashboard");
+
+  await page.locator("#reset-btn").click();
+  await page.waitForFunction(() => window.__dashboard?.filters.product === "all" && window.__dashboard?.rowCount === 28156);
 
   await mkdir(artifactDir, { recursive: true });
   await page.screenshot({ path: join(artifactDir, "dashboard-smoke.png"), fullPage: true });

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consumer Complaints Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Compliance monitoring</p>
+          <h1>Consumer Complaints Dashboard</h1>
+          <p class="subtitle">Open complaints are the primary signal for action; closed complaints provide context for workload and recurring issues.</p>
+        </div>
+        <div class="source-block">
+          <span class="source-label">Dataset</span>
+          <strong>Plotly 26k Consumer Complaints</strong>
+          <span>2015-01-01 to 2015-03-19</span>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="Dashboard filters">
+        <label>
+          Start
+          <input id="start-date" type="date" data-testid="start-date">
+        </label>
+        <label>
+          End
+          <input id="end-date" type="date" data-testid="end-date">
+        </label>
+        <label>
+          Status
+          <select id="status-filter" data-testid="status-filter">
+            <option value="all">All complaints</option>
+            <option value="Open">Open only</option>
+            <option value="Closed">Closed only</option>
+          </select>
+        </label>
+        <label>
+          Product
+          <select id="product-filter" data-testid="product-filter">
+            <option value="all">All products</option>
+          </select>
+        </label>
+        <label class="search-label">
+          Search
+          <input id="search-box" type="search" placeholder="Company, issue, state..." data-testid="search-box">
+        </label>
+        <button id="export-btn" class="secondary" type="button" data-testid="export-btn">Export CSV</button>
+        <button id="reset-btn" type="button" data-testid="reset-btn">Reset</button>
+      </section>
+
+      <section id="active-filters" class="active-filters" aria-live="polite"></section>
+
+      <section class="kpi-grid" aria-label="Complaint summary">
+        <article class="kpi-card">
+          <span>Total complaints</span>
+          <strong id="total-complaints" data-testid="total-complaints">0</strong>
+          <small id="date-window">Selected period</small>
+        </article>
+        <article class="kpi-card open-card">
+          <span>Open</span>
+          <strong id="open-complaints" data-testid="open-complaints">0</strong>
+          <small>In progress</small>
+        </article>
+        <article class="kpi-card closed-card">
+          <span>Closed</span>
+          <strong id="closed-complaints" data-testid="closed-complaints">0</strong>
+          <small>Resolved responses</small>
+        </article>
+        <article class="kpi-card">
+          <span>Open rate</span>
+          <strong id="open-rate" data-testid="open-rate">0%</strong>
+          <small id="oldest-open">Oldest open: n/a</small>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel wide">
+          <div class="panel-header">
+            <div>
+              <h2>Complaints Over Time</h2>
+              <p>Open complaints sit on the baseline for precise comparison.</p>
+            </div>
+          </div>
+          <div id="time-chart" class="chart-area tall" data-testid="time-chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Open Complaints by State</h2>
+              <p id="map-meta">Each state has equal visual weight.</p>
+            </div>
+          </div>
+          <div id="state-map" class="map-area" data-testid="state-map"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Complaints by Issue</h2>
+              <p>Top recurring reasons in the selected slice.</p>
+            </div>
+          </div>
+          <div id="issue-chart" class="chart-area" data-testid="issue-chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Complaints by Company</h2>
+              <p>Organizations creating the largest workload.</p>
+            </div>
+          </div>
+          <div id="company-chart" class="chart-area" data-testid="company-chart"></div>
+        </article>
+
+        <article class="panel wide">
+          <div class="panel-header">
+            <div>
+              <h2>Oldest Open Complaints</h2>
+              <p>Records that need attention first after filters are applied.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>State</th>
+                  <th>Product</th>
+                  <th>Issue</th>
+                  <th>Company</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="detail-table" data-testid="detail-table"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
